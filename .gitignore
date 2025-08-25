@@ -1,13 +1,18 @@
 *
-!ex*/
-!ex*/**
-!.gitignore
 
+!.gitignore
 !README.md
 !note.md
 !cp2sub.sh
 
+!*/
+!ex*/
+!ex*/**/
+
+!ex*/**/*.cpp
+!ex*/**/*.hpp
+!ex*/**/Makefile
+
 *.o
 *.d
-
 en.subject.pdf
