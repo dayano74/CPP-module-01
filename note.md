@@ -13,4 +13,24 @@ std::cout << "-----" << std::endl;
 randomChump("StackBar"); // stack で生成。スコープを抜けると自動で解放
 ```
 
-## ex01
+## ex01 要点
+
+### API
+- Zombie* zombieHorde(int N, std::string name);
+  - N <= 0 なら NULL を返す
+  - new[] で N 体を一括確保し、各要素に同じ name を設定
+  - 解放は必ず delete[] horde
+
+### つまずきポイントと対策
+- 配列生成にはデフォルトコンストラクタが必須
+  - Zombie() をヘッダで宣言してから実装する
+  - 配列生成時に呼ばれるのは Zombie()（引数なし）。引数つきは単体生成用
+- ヘッダで <string> をインクルード
+  - std::string 使用のため
+- new(std::nothrow) と例外
+  - new は失敗時 std::bad_alloc を throw
+  - new(std::nothrow) は例外を投げず NULL を返すので if (!p) でチェック
+- delete と delete[] の違い
+  - 配列は delete[] を使用
+- 同名ヘッダにジャンプしてしまう
+  - 相対インクルード("../incs/…")、compile_commands.json を設定、または includePath で ex01 を優先
