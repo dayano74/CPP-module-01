@@ -8,7 +8,7 @@ INCDIR := incs
 OBJDIR := objs
 DEPDIR := deps
 
-SRCS := main.cpp Zombie.cpp newZombie.cpp randomChump.cpp 
+SRCS := main.cpp Zombie.cpp zombieHorde.cpp 
 
 SRCS := $(addprefix $(SRCDIR)/,$(SRCS))
 OBJS := $(SRCS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
