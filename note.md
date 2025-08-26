@@ -34,3 +34,26 @@ randomChump("StackBar"); // stack で生成。スコープを抜けると自動�
   - 配列は delete[] を使用
 - 同名ヘッダにジャンプしてしまう
   - 相対インクルード("../incs/…")、compile_commands.json を設定、または includePath で ex01 を優先
+
+// ...existing code...
+
+## ex02 要点
+
+目的
+- 参照とポインタの基本を、同一オブジェクトを指す3通りで確認する。
+
+要件
+- brain: "HI THIS IS BRAIN"
+- stringPTR: std::string* = &brain
+- stringREF: std::string& = brain
+- 出力: アドレス（&brain, stringPTR, &stringREF）と値（brain, *stringPTR, stringREF）
+
+実装メモ
+- <iostream> と <string> を明示的にインクルード（間接インクルードに依存しない）
+- 参照は別名: &stringREF == &brain
+- ポインタはアドレス保持: stringPTR == &brain, 参照外し *stringPTR == brain
+
+確認
+- 3つのアドレスが一致
+- 3つの値が一致
+- *stringPTR や stringREF で値を変更すると brain も変わる
