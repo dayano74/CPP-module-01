@@ -57,3 +57,50 @@ randomChump("StackBar"); // stack で生成。スコープを抜けると自動�
 - 3つのアドレスが一致
 - 3つの値が一致
 - *stringPTR や stringREF で値を変更すると brain も変わる
+
+## ex03 要点（Unnecessary violence）
+
+目的
+- 参照（Weapon&）とポインタ（Weapon*）の使い分けを体感する。
+
+設計
+- Weapon
+  - メンバ: std::string type
+  - 明示コンストラクタ: explicit Weapon(const std::string& type)
+  - 取得: const std::string& getType() const
+  - 変更: void setType(const std::string& newType)
+- HumanA（常に武装）
+  - メンバ: std::string name; Weapon& weapon;
+  - Ctor: HumanA(const std::string& name, Weapon& weapon)
+  - attack(): "<name> attacks with their <weapon type>"
+- HumanB（未装備あり）
+  - メンバ: std::string name; Weapon* weapon; // 初期値 NULL
+  - Ctor: explicit HumanB(const std::string& name)
+  - setWeapon(Weapon& w) // weapon = &w;
+  - attack(): weapon が NULL の場合の扱いを用意
+
+動作要件
+- 同じ Weapon を共有するため、club.setType(...) の変更は両者の attack() 出力に反映される。
+
+引っ掛かりポイントと対策
+- 参照かポインタか
+  - 常に所持 → 参照（非NULLを型で保証、付け替え不可）
+  - 未装備/付け替えあり → ポインタ（NULL可、差し替え可）
+- 参照の初期化
+  - 参照は“別名”のため必ずコンストラクタ初期化子で結び付ける。後から付け替え不可
+  - ポインタは NULL 初期化可。後から setWeapon で設定
+- explicit の意味
+  - 単引数コンストラクタの“暗黙変換”を禁止し、明示的に Weapon("club") と書かせる
+- const の意味（getType）
+  - 返り値 const std::string&: 高速・読み取り専用
+  - メソッド末尾 const: 内部を変更しない契約（const オブジェクトからも呼べる）
+- インクルード
+  - 各ヘッダで <string> を明示的にインクルード（間接インクルードに依存しない）
+- 所有権と寿命
+  - HumanA/B は Weapon を所有しない（delete 不要）。Weapon の寿命が Human より長い前提
+
+チェック
+- HumanA: ctor 初期化子で weapon を初期化
+- HumanB: weapon を NULL で初期化し、attack 前に NULL チェック
+- 出力形式どおり（山括弧は出さない）
+- valgrind --leak-check=full でリークなし
