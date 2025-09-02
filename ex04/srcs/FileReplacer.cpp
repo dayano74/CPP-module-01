@@ -1,12 +1,21 @@
 #include "FileReplacer.hpp"
+
 #include <fstream>
 #include <sstream>
 
-FileReplacer::FileReplacer(const std::string& filename, const std::string& s1, const std::string &s2)
+FileReplacer::FileReplacer(const std::string& filename, const std::string& s1, const std::string& s2)
     : _in(filename), _out(filename + ".replace"), _s1(s1), _s2(s2) {}
 
-std::string FileReplacer::replacerAll(const std::string& src, const std::string& from, const std::string& to){
-
+std::string FileReplacer::replacerAll(const std::string& src, const std::string& from, const std::string& to) {
+  if (from.empty()) return src;
+  std::string result = src;
+  size_t pos = 0;
+  while ((pos = result.find(from, pos)) != std::string::npos) {
+    result.erase(pos, from.length());
+    result.insert(pos, to);
+    pos += to.length();
+  }
+  return result;
 }
 
 bool FileReplacer::run(std::string& err) {
@@ -22,8 +31,20 @@ bool FileReplacer::run(std::string& err) {
   std::ostringstream oss;
   oss << ifs.rdbuf();
   if (!ifs.good() && !ifs.eof()) {
-    err = "failed to read input: "  + _in;
+    err = "failed to read input: " + _in;
     return false;
   }
   const std::string content = oss.str();
+  const std::string replaced = replacerAll(content, _s1, _s2);
+  std::ofstream ofs(_out.c_str(), std::ios::out | std::ios::binary);
+  if (!ofs) {
+    err = "failed to open output: " + _out;
+    return false;
+  }
+  ofs << replaced;
+  if (!ofs.good()) {
+    err = "failed to write output: " + _out;
+    return false;
+  }
+  return true;
 }

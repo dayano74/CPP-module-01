@@ -1,15 +1,14 @@
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "FileReplacer.hpp"
 
-void usage(const char* prog){
-  std::cout << "Usage: " << prog << "<filename> <s1> <s2>" << std::endl;
+void usage(const char* prog) {
+  std::cout << "Usage: " << prog << " : <filename> <s1> <s2>" << std::endl;
 }
 
-int main(int argc, char* argv[])
-{
-  if (argc != 4){
+int main(int argc, char* argv[]) {
+  if (argc != 4) {
     usage(argv[0]);
     return 1;
   }
