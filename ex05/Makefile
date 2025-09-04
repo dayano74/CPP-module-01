@@ -44,5 +44,5 @@ run: $(NAME)
 
 -include $(DEPS)
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re run
 
