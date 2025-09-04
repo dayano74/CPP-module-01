@@ -8,7 +8,7 @@ INCDIR := incs
 OBJDIR := objs
 DEPDIR := deps
 
-SRCS := main.cpp harl.cpp
+SRCS := main.cpp Harl.cpp
 
 SRCS := $(addprefix $(SRCDIR)/,$(SRCS))
 OBJS := $(SRCS:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
