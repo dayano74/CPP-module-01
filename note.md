@@ -204,6 +204,84 @@ std::string& ref = brain;  // ✅ OK（初期化が必須）
 - 出力形式どおり（山括弧は出さない）
 - valgrind --leak-check=full でリークなし
 
+### explicit キーワードについて
+explicitは、暗黙的な方変換を防ぐキーワード
+
+1. explicitがない場合の危険性
+```
+// explicitなしの場合
+class Weapon {
+ public:
+  Weapon(const std::string& type);  // explicitがない
+};
+
+// 暗黙的な変換が起こる！
+Weapon w = "Sword";  // ✅ コンパイルされる
+                      // std::string("Sword") が自動的に作られて
+                      // Weapon のコンストラクタに渡される
+```
+
+2. explicitがある場合の安全性
+```
+// explicitありの場合
+class Weapon {
+ public:
+  explicit Weapon(const std::string& type);  // explicit付き
+};
+
+Weapon w = "Sword";           // ❌ コンパイルエラー！暗黙変換は禁止
+Weapon w("Sword");            // ✅ OK：明示的な呼び出し
+Weapon w(std::string("Sword")); // ✅ OK：明示的な呼び出し
+```
+
+3. explicitがないと何が悪いのか？
+```
+// 問題のあるシナリオ
+class Weapon {
+ public:
+  Weapon(const std::string& type);  // explicitなし
+};
+
+void selectWeapon(const Weapon& weapon) {
+    // 武器を選択する処理
+}
+
+// 間違った使い方が許されてしまう
+selectWeapon("Sword");  // 👈 文字列を渡しているのに、自動的にWeaponに変換される
+                         // プログラマの意図が不明確
+                         // バグの原因になる可能性
+
+// explicitがあれば...
+selectWeapon("Sword");  // ❌ コンパイルエラー！プログラマのミスを防げる
+selectWeapon(Weapon("Sword"));  // ✅ 明示的で意図が明確
+```
+
+4. 使い分けのポイント
+
+**判断フロー：**
+- 単一引数のコンストラクタ？
+  - YES → explicit を付ける（デフォルト）
+  - NO → explicit なしでOK
+
+- ただし「値をそのまま包むだけ」の場合は例外
+  - UserId(int) のように、型名が値の別の言い方に過ぎない場合
+  - explicit なしでも許容される（ただし付けても良い）
+
+**具体例：**
+```cpp
+// ❌ explicit が必須：値を「概念化」している
+explicit class Temperature(double celsius);  // 数字 ≠ 温度
+explicit class Weapon(const std::string& type);  // 文字列 ≠ 武器
+
+// ✅ explicit なしでもOK：値をそのまま「格納」するだけ
+class UserId(int id);      // int = UserId（本質的に同じ）
+class Counter(int count);  // int = Counter（単なる別名）
+std::string("text");       // 標準ライブラリの例
+```
+
+**結論：迷ったら explicit を付ける。安全性が上がり、意図が明確になる。**
+
+
 ## ex04 要点（Sed is for losers）
 
 目的
@@ -244,3 +322,87 @@ std::string& ref = brain;  // ✅ OK（初期化が必須）
 - フラグ結合は |（ビットOR）。|| は不可
 - from が空だと無限ループ → 事前チェック必須
 - 置換後は pos を to.length() 進める
+
+
+## ex05 要点（Harl 2.0）
+
+目的
+- **ポインタ・トゥ・メンバ関数**（Member Function Pointers）を使用して、複数の メンバ関数を動的に呼び出す
+- `if/else if/else` の「森」を避けることが必須要件
+
+設計
+- Harl クラス
+  - プライベート メンバ関数（4つ）:
+    - void debug(void);     // DEBUG レベルのメッセージ出力
+    - void info(void);      // INFO レベルのメッセージ出力
+    - void warning(void);   // WARNING レベルのメッセージ出力
+    - void error(void);     // ERROR レベルのメッセージ出力
+  - パブリック メンバ関数:
+    - void complain(std::string level); // レベルに応じてメンバ関数を呼び出す
+
+肝となる実装：ポインタ・トゥ・メンバ関数とテーブル駆動設計
+
+1. メンバ関数ポインタの型定義
+```cpp
+typedef void (Harl::*Action)();
+```
+- `(Harl::*Action)()` = Harl クラスのメンバ関数で、引数なし、返り値void のポインタ型
+- `Action` という型エイリアスを定義
+
+2. テーブル駆動設計
+```cpp
+struct Entry { const char* key; Action fn; };
+static const Entry table[] = {
+  {"DEBUG",   &Harl::debug},
+  {"INFO",    &Harl::info},
+  {"WARNING", &Harl::warning},
+  {"ERROR",   &Harl::error},
+};
+```
+- 文字列（レベル名）と対応するメンバ関数ポインタをペアで保持
+- static const でコンパイル時に確定
+
+3. テーブルをループで検索・実行
+```cpp
+for (size_t i = 0; i < sizeof(table)/sizeof(table[0]); ++i) {
+  if (level == table[i].key) {
+    (this->*table[i].fn)();  // メンバ関数ポインタを通じて実行
+    return;
+  }
+}
+```
+- level に合致する Entry を探す
+- `(this->*table[i].fn)()` でメンバ関数を呼び出す
+  - `this->*` = メンバ関数ポインタを逆参照
+  - `()` = 関数を実行
+
+実装メモ
+- ヘッダファイル:
+  - <string> をインクルード
+  - プライベート メンバ関数を宣言
+  - パブリック メンバ関数 complain() を宣言
+- ソースファイル:
+  - 各メンバ関数は独立した実装
+  - complain() 内でテーブルと typedef を定義
+  - 大文字小文字を区別（"DEBUG" ≠ "debug"）
+
+メリット
+- 拡張性: 新しいレベルを追加する場合、テーブルにエントリを追加するだけ
+- 保守性: if/else if/else の複雑なネスト構造がない
+- 読みやすさ: テーブルを見るだけでマッピングが理解できる
+
+チェック
+- complain() が if/else を使っていない ✅
+- メンバ関数ポインタを正しく使用している ✅
+- すべてのレベル（DEBUG, INFO, WARNING, ERROR）を処理できる ✅
+- 合致しないレベルは何もしない（関数を呼ばない）✅
+
+テスト例
+```cpp
+Harl harl;
+harl.complain("DEBUG");    // debug() が呼ばれる
+harl.complain("INFO");     // info() が呼ばれる
+harl.complain("WARNING");  // warning() が呼ばれる
+harl.complain("ERROR");    // error() が呼ばれる
+harl.complain("INVALID");  // 何も起こらない
+```
