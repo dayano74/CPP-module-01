@@ -101,6 +101,62 @@ delete[] zombieHorde; // 配列の解放
 - 3つの値が一致
 - *stringPTR や stringREF で値を変更すると brain も変わる
 
+### ポインタと参照の違い
+
+【ポインタ】
+- アドレスを格納する「変数」
+- 複数の対象を指しなおせる
+- NULLポインタの可能性
+- メモリ消費あり
+
+【参照】
+- 元の変数の「別名」
+- 初期化後は対象を変更できない
+- 常に有効（NULL不可）
+- メモリ消費なし
+
+```
+// ===== ポインタの場合 =====
+std::string str1 = "First";
+std::string str2 = "Second";
+
+std::string* ptr = &str1;
+std::cout << *ptr << std::endl;  // "First"
+
+ptr = &str2;  // ✅ ポインタは別の変数を指すように変更可能
+std::cout << *ptr << std::endl;  // "Second"
+
+
+// ===== 参照の場合 =====
+std::string& ref = str1;
+std::cout << ref << std::endl;   // "First"
+
+ref = str2;  // ❌ これは参照の対象を変更しようとする
+             // 実際には str1 の内容が str2 の内容に変わる
+std::cout << ref << std::endl;   // "Second"
+std::cout << str1 << std::endl;  // "Second" ← str1も変わっている！
+```
+```
+std::string brain = "HI THIS IS BRAIN";
+std::string& ref = brain;
+
+// 参照を通じて変更すると、元の変数も変わる
+ref = "MODIFIED";
+std::cout << brain << std::endl;  // "MODIFIED" ← 元の変数も変わった！
+
+// 参照はあくまで同じ対象を指しているだけ
+```
+```
+// ポインタ：後で初期化できる
+std::string* ptr;
+ptr = &brain;  // ✅ OK
+
+// 参照：宣言時に必ず初期化しなければならない
+std::string& ref;       // ❌ コンパイルエラー！
+std::string& ref = brain;  // ✅ OK（初期化が必須）
+```
+
+
 ## ex03 要点（Unnecessary violence）
 
 目的
