@@ -35,7 +35,50 @@ randomChump("StackBar"); // stack で生成。スコープを抜けると自動�
 - 同名ヘッダにジャンプしてしまう
   - 相対インクルード("../incs/…")、compile_commands.json を設定、または includePath で ex01 を優先
 
-// ...existing code...
+### new(std::nothrow) について
+
+1．通常のnew
+```cpp
+Zombie* horde = new Zombie[N]; // メモリ確保に失敗すると例外をスローする
+```
+通常のnewは、メモリ確保に失敗した場合にstd::bad_alloc例外をスローする。初学者は扱いにくい場合がある。というか、CではNULLチェックが一般的なので、例外処理に慣れていないと混乱する。
+
+2．new(std::nothrow)
+```cpp
+Zombie* horde = new(std::nothrow) Zombie[N]; // 失敗時は例外ではなくNULLを返す
+```
+- メモリ確保に失敗した場合、例外をスローしない
+- 変わりにNULLまたはnullptrを返す
+- 呼び出し側でNULLチェックを行う必要がある。Cのmallocと似たスタイル。
+
+3．使い分けの例
+```
+try {
+	Zombie* horde = new Zombie[N]; // 例外を使いたい場合
+	// 使用コード
+} catch (const std::bad_alloc& e) {
+	std::cerr << "Memory allocation failed: " << e.what() << std::endl;
+}
+
+Zombie* horde = new(std::nothrow) Zombie[N]; // 例外を使いたくない場合
+if (!horde) {
+	std::cerr << "Memory allocation failed" << std::endl;
+	// エラーハンドリング
+}
+```
+
+### delete と delete[] の違い
+- delete: 単一オブジェクトのメモリを解放
+- delete[]: 配列のメモリを解放
+
+例:
+```cpp
+Zombie* singleZombie = new Zombie("Solo");
+delete singleZombie; // 単一オブジェクトの解放
+
+Zombie* zombieHorde = new Zombie[10];
+delete[] zombieHorde; // 配列の解放
+```
 
 ## ex02 要点
 
