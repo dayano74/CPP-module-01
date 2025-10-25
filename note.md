@@ -35,6 +35,12 @@ randomChump("StackBar"); // stack で生成。スコープを抜けると自動�
 - 同名ヘッダにジャンプしてしまう
   - 相対インクルード("../incs/…")、compile_commands.json を設定、または includePath で ex01 を優先
 
+### std::string と NULL について
+- std::string は C の文字列（char*）とは異なり、NULL を扱わない
+- std::string str = NULL; はコンパイル可能であるが、未定義動作を引き起こす
+
+[参考リンク](https://zenn.dev/kmitsunami/articles/b3dc647e5cf73d)
+
 ### new(std::nothrow) について
 
 1．通常のnew
