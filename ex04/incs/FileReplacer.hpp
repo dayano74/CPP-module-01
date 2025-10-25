@@ -3,19 +3,20 @@
 
 #include <string>
 
-class FileReplacer
-{
-  private:
-    std::string _in;
-    std::string _out;
-    std::string _s1;
-    std::string _s2;
+class FileReplacer {
+ private:
+  std::string _in;
+  std::string _out;
+  std::string _s1;
+  std::string _s2;
 
-    std::string replacerAll(const std::string& src, const std::string& from, const std::string& to);
+  std::string replacerAll(const std::string& src, const std::string& from, const std::string& to);
+  bool readFile(std::string& content, std::string& err);
+  bool writeFile(const std::string& replaced, std::string& err);
 
-  public:
-    FileReplacer(const std::string &filename, const std::string &s1, const std::string &s2);
-    bool run(std::string& err);
+ public:
+  FileReplacer(const std::string& filename, const std::string& s1, const std::string& s2);
+  bool run(std::string& err);
 };
 
 #endif  // FILEREPLACER_HPP

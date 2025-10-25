@@ -18,11 +18,7 @@ std::string FileReplacer::replacerAll(const std::string& src, const std::string&
   return result;
 }
 
-bool FileReplacer::run(std::string& err) {
-  if (_s1.empty()) {
-    err = "s1 must not be empty";
-    return false;
-  }
+bool FileReplacer::readFile(std::string& content, std::string& err) {
   std::ifstream ifs(_in.c_str(), std::ios::in | std::ios::binary);
   if (!ifs) {
     err = "failed to open input: " + _in;
@@ -34,8 +30,11 @@ bool FileReplacer::run(std::string& err) {
     err = "failed to read input: " + _in;
     return false;
   }
-  const std::string content = oss.str();
-  const std::string replaced = replacerAll(content, _s1, _s2);
+  content = oss.str();
+  return true;
+}
+
+bool FileReplacer::writeFile(const std::string& replaced, std::string& err) {
   std::ofstream ofs(_out.c_str(), std::ios::out | std::ios::binary);
   if (!ofs) {
     err = "failed to open output: " + _out;
@@ -44,6 +43,22 @@ bool FileReplacer::run(std::string& err) {
   ofs << replaced;
   if (!ofs.good()) {
     err = "failed to write output: " + _out;
+    return false;
+  }
+  return true;
+}
+
+bool FileReplacer::run(std::string& err) {
+  if (_s1.empty()) {
+    err = "s1 must not be empty";
+    return false;
+  }
+  std::string content;
+  if (!readFile(content, err)) {
+    return false;
+  }
+  const std::string replaced = replacerAll(content, _s1, _s2);
+  if (!writeFile(replaced, err)) {
     return false;
   }
   return true;
