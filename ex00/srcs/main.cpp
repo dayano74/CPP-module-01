@@ -1,4 +1,4 @@
-#include "Zombie.hpp"
+#include "../incs/Zombie.hpp"
 
 int main(void) {
   Zombie* heapZombie = newZombie("HeapFoo");
