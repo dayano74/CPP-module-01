@@ -16,3 +16,4 @@
 *.o
 *.d
 en.subject.pdf
+.vscode/
